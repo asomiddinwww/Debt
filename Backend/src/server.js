@@ -20,6 +20,23 @@ app.set('trust proxy', true);
 app.use(cors({ origin: ORIGINS, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
+// Serverless muhitda setInterval ishlamaydi: eslatmalar so'rovlar orasida ko'pi bilan 10 daqiqada bir bajariladi
+const JOBS_EVERY = 10 * 60 * 1000;
+let lastJobs = 0;
+if (process.env.VERCEL) {
+  app.use((_req, _res, next) => {
+    if (Date.now() - lastJobs > JOBS_EVERY) {
+      lastJobs = Date.now();
+      try {
+        runJobs();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    next();
+  });
+}
+
 app.get('/api/health', (_req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -34,9 +51,13 @@ app.use((err, _req, res, _next) => {
   res.status(status).json({ error: status >= 500 ? 'Serverda xatolik yuz berdi' : err.message });
 });
 
-runJobs();
-setInterval(runJobs, 10 * 60 * 1000);
+if (!process.env.VERCEL) {
+  runJobs();
+  setInterval(runJobs, JOBS_EVERY);
 
-app.listen(PORT, () => {
-  console.log(`Qarz Daftar API: http://localhost:${PORT}/api`);
-});
+  app.listen(PORT, () => {
+    console.log(`Qarz Daftar API: http://localhost:${PORT}/api`);
+  });
+}
+
+export default app;

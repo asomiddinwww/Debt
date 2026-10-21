@@ -4,7 +4,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'qarz-daftar.db');
+// Vercel'da faqat /tmp ga yozish mumkin (vaqtinchalik: instance almashganda baza qayta yaratiladi)
+export const DB_PATH =
+  process.env.DB_PATH ||
+  (process.env.VERCEL ? '/tmp/qarz-daftar.db' : path.join(__dirname, '..', 'data', 'qarz-daftar.db'));
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 

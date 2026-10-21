@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+// Vercel'da backend shu domenning /api yo'lida turadi
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === "production" ? "/api" : "http://localhost:4000/api");
 
 type Scope = "store" | "admin";
 const KEYS: Record<Scope, string> = { store: "qd_token", admin: "qd_admin_token" };
